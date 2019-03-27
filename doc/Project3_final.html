@@ -13587,7 +13587,69 @@ Time: 298.13437128067017
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
 </div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<h3 id="2.3.-Cross-Validation">2.3. Cross Validation<a class="anchor-link" href="#2.3.-Cross-Validation">&#182;</a></h3>
+<h3 id="2.3.-Grid-Search">2.3. Grid Search<a class="anchor-link" href="#2.3.-Grid-Search">&#182;</a></h3>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Since we have to train 12 models, the GridSearchCV impletemented in sklearn won't work, thus we create a new grid search function to find the paramters corresponding to each model.</p>
+<p>What we did is using for-loop to go through all 3 channels and 4 models per channel. Also, we can set the function to work parallelly to speed up</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="kn">from</span> <span class="nn">sklearn.metrics</span> <span class="k">import</span> <span class="n">make_scorer</span>
+<span class="kn">from</span> <span class="nn">sklearn.model_selection</span> <span class="k">import</span> <span class="n">GridSearchCV</span>
+<span class="kn">from</span> <span class="nn">sklearn.metrics</span> <span class="k">import</span> <span class="n">mean_squared_error</span>
+
+<span class="k">def</span> <span class="nf">my_grid_search</span><span class="p">(</span><span class="n">X_train</span><span class="p">,</span><span class="n">y_train</span><span class="p">,</span><span class="n">model</span><span class="p">,</span><span class="n">parameters</span><span class="p">,</span><span class="n">cv</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span><span class="n">n_jobs</span> <span class="o">=</span> <span class="n">n_job</span><span class="p">):</span>
+    
+    
+    <span class="n">reg</span> <span class="o">=</span> <span class="n">GridSearchCV</span><span class="p">(</span><span class="n">model</span><span class="p">,</span>
+                       <span class="n">cv</span><span class="o">=</span><span class="n">cv</span><span class="p">,</span>
+                      <span class="n">param_grid</span> <span class="o">=</span> <span class="n">parameters</span><span class="p">,</span>
+                       <span class="n">scoring</span> <span class="o">=</span> <span class="n">make_scorer</span><span class="p">(</span><span class="n">mean_squared_error</span><span class="p">,</span>
+                                        <span class="n">greater_is_better</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
+                      <span class="n">n_jobs</span> <span class="o">=</span> <span class="n">n_jobs</span><span class="p">)</span>
+    <span class="n">reg</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X_train</span><span class="p">,</span> <span class="n">y_train</span><span class="p">)</span>
+    
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Best params&#39;</span><span class="p">,</span><span class="n">reg</span><span class="o">.</span><span class="n">best_params_</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Best MSE:&#39;</span><span class="p">,</span><span class="o">-</span><span class="n">reg</span><span class="o">.</span><span class="n">score</span><span class="p">(</span><span class="n">X_train</span><span class="p">,</span> <span class="n">y_train</span><span class="p">))</span>
+    
+    <span class="k">return</span> <span class="n">reg</span><span class="o">.</span><span class="n">best_params_</span>
+
+<span class="k">def</span> <span class="nf">grid_search_all_model</span><span class="p">(</span><span class="n">X_train</span><span class="p">,</span><span class="n">y_train</span><span class="p">,</span><span class="n">model</span><span class="p">,</span><span class="n">parameters</span><span class="p">,</span><span class="n">cv</span> <span class="o">=</span> <span class="mi">3</span><span class="p">):</span>
+    <span class="n">best_params</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">index</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="n">channels</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">4</span><span class="p">):</span>
+            <span class="n">X_tr</span> <span class="o">=</span> <span class="n">X_train</span><span class="p">[:,:,</span><span class="n">channel</span><span class="p">]</span>
+            <span class="n">y_tr</span> <span class="o">=</span> <span class="n">y_train</span><span class="p">[:,</span><span class="n">i</span><span class="p">,</span><span class="n">channel</span><span class="p">]</span>
+            
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Model&#39;</span><span class="p">,</span><span class="n">index</span><span class="p">)</span>
+            <span class="n">model</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X_tr</span><span class="p">,</span><span class="n">y_tr</span><span class="p">)</span>
+            <span class="n">best_params</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">my_grid_search</span><span class="p">(</span><span class="n">X_tr</span><span class="p">,</span><span class="n">y_tr</span><span class="p">,</span><span class="n">model</span><span class="p">,</span><span class="n">parameters</span><span class="p">,</span><span class="n">cv</span> <span class="o">=</span> <span class="n">cv</span><span class="p">))</span>
+            <span class="n">index</span> <span class="o">+=</span> <span class="mi">1</span>
+            
+    <span class="k">return</span> <span class="n">best_params</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h3 id="2.4.-Cross-Validation">2.4. Cross Validation<a class="anchor-link" href="#2.4.-Cross-Validation">&#182;</a></h3>
 </div>
 </div>
 </div>
@@ -13631,68 +13693,6 @@ Time: 298.13437128067017
         
     <span class="k">return</span> <span class="n">val_error</span><span class="p">,</span><span class="n">tr_error</span>
         
-</pre></div>
-
-    </div>
-</div>
-</div>
-
-</div>
-<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div><div class="inner_cell">
-<div class="text_cell_render border-box-sizing rendered_html">
-<h3 id="2.4.-Grid-Search">2.4. Grid Search<a class="anchor-link" href="#2.4.-Grid-Search">&#182;</a></h3>
-</div>
-</div>
-</div>
-<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div><div class="inner_cell">
-<div class="text_cell_render border-box-sizing rendered_html">
-<p>Since we have to train 12 models, the GridSearchCV impletemented in sklearn won't work, thus we create a new grid search function to find the paramters corresponding to each model.</p>
-<p>What we did is using for-loop to go through all 3 channels and 4 models per channel. Also, we can set the function to work parallelly to speed up</p>
-
-</div>
-</div>
-</div>
-<div class="cell border-box-sizing code_cell rendered">
-<div class="input">
-<div class="prompt input_prompt">In&nbsp;[8]:</div>
-<div class="inner_cell">
-    <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="kn">from</span> <span class="nn">sklearn.metrics</span> <span class="k">import</span> <span class="n">make_scorer</span>
-<span class="kn">from</span> <span class="nn">sklearn.model_selection</span> <span class="k">import</span> <span class="n">GridSearchCV</span>
-<span class="kn">from</span> <span class="nn">sklearn.metrics</span> <span class="k">import</span> <span class="n">mean_squared_error</span>
-
-<span class="k">def</span> <span class="nf">my_grid_search</span><span class="p">(</span><span class="n">X_train</span><span class="p">,</span><span class="n">y_train</span><span class="p">,</span><span class="n">model</span><span class="p">,</span><span class="n">parameters</span><span class="p">,</span><span class="n">cv</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span><span class="n">n_jobs</span> <span class="o">=</span> <span class="n">n_job</span><span class="p">):</span>
-    
-    
-    <span class="n">reg</span> <span class="o">=</span> <span class="n">GridSearchCV</span><span class="p">(</span><span class="n">model</span><span class="p">,</span>
-                       <span class="n">cv</span><span class="o">=</span><span class="n">cv</span><span class="p">,</span>
-                      <span class="n">param_grid</span> <span class="o">=</span> <span class="n">parameters</span><span class="p">,</span>
-                       <span class="n">scoring</span> <span class="o">=</span> <span class="n">make_scorer</span><span class="p">(</span><span class="n">mean_squared_error</span><span class="p">,</span>
-                                        <span class="n">greater_is_better</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
-                      <span class="n">n_jobs</span> <span class="o">=</span> <span class="n">n_jobs</span><span class="p">)</span>
-    <span class="n">reg</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X_train</span><span class="p">,</span> <span class="n">y_train</span><span class="p">)</span>
-    
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Best params&#39;</span><span class="p">,</span><span class="n">reg</span><span class="o">.</span><span class="n">best_params_</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Best MSE:&#39;</span><span class="p">,</span><span class="o">-</span><span class="n">reg</span><span class="o">.</span><span class="n">score</span><span class="p">(</span><span class="n">X_train</span><span class="p">,</span> <span class="n">y_train</span><span class="p">))</span>
-    
-    <span class="k">return</span> <span class="n">reg</span><span class="o">.</span><span class="n">best_params_</span>
-
-<span class="k">def</span> <span class="nf">grid_search_all_model</span><span class="p">(</span><span class="n">X_train</span><span class="p">,</span><span class="n">y_train</span><span class="p">,</span><span class="n">model</span><span class="p">,</span><span class="n">parameters</span><span class="p">,</span><span class="n">cv</span> <span class="o">=</span> <span class="mi">3</span><span class="p">):</span>
-    <span class="n">best_params</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="n">index</span> <span class="o">=</span> <span class="mi">0</span>
-    <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="n">channels</span><span class="p">:</span>
-        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">4</span><span class="p">):</span>
-            <span class="n">X_tr</span> <span class="o">=</span> <span class="n">X_train</span><span class="p">[:,:,</span><span class="n">channel</span><span class="p">]</span>
-            <span class="n">y_tr</span> <span class="o">=</span> <span class="n">y_train</span><span class="p">[:,</span><span class="n">i</span><span class="p">,</span><span class="n">channel</span><span class="p">]</span>
-            
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Model&#39;</span><span class="p">,</span><span class="n">index</span><span class="p">)</span>
-            <span class="n">model</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X_tr</span><span class="p">,</span><span class="n">y_tr</span><span class="p">)</span>
-            <span class="n">best_params</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">my_grid_search</span><span class="p">(</span><span class="n">X_tr</span><span class="p">,</span><span class="n">y_tr</span><span class="p">,</span><span class="n">model</span><span class="p">,</span><span class="n">parameters</span><span class="p">,</span><span class="n">cv</span> <span class="o">=</span> <span class="n">cv</span><span class="p">))</span>
-            <span class="n">index</span> <span class="o">+=</span> <span class="mi">1</span>
-            
-    <span class="k">return</span> <span class="n">best_params</span>
 </pre></div>
 
     </div>
@@ -13897,10 +13897,10 @@ Time: 298.13437128067017
 
  
  
-<div id="66a3b2dd-ea44-4dc2-92e6-7acc64cc3192"></div>
+<div id="4f41ea22-84d7-4664-b4ac-b67db9959377"></div>
 <div class="output_subarea output_widget_view ">
 <script type="text/javascript">
-var element = $('#66a3b2dd-ea44-4dc2-92e6-7acc64cc3192');
+var element = $('#4f41ea22-84d7-4664-b4ac-b67db9959377');
 </script>
 <script type="application/vnd.jupyter.widget-view+json">
 {"model_id": "371c0ae1fec04579b55b810e44333a86", "version_major": 2, "version_minor": 0}
@@ -14779,10 +14779,10 @@ Time: 4.063607215881348
 
  
  
-<div id="ae664715-908a-4455-a4eb-d85e8dc64996"></div>
+<div id="19d22f92-bf56-43b5-a6ee-2a9e7f664cfb"></div>
 <div class="output_subarea output_widget_view ">
 <script type="text/javascript">
-var element = $('#ae664715-908a-4455-a4eb-d85e8dc64996');
+var element = $('#19d22f92-bf56-43b5-a6ee-2a9e7f664cfb');
 </script>
 <script type="application/vnd.jupyter.widget-view+json">
 {"model_id": "952014e078674d4094627c532cf24aeb", "version_major": 2, "version_minor": 0}
@@ -15501,10 +15501,10 @@ Time: 551.9331457614899
 
 
 
-<div id="2bffc744-8430-45dd-a5d9-e54f408cdc56"></div>
+<div id="679279b5-ee93-42db-8543-83a30ca0a896"></div>
 <div class="output_subarea output_javascript ">
 <script type="text/javascript">
-var element = $('#2bffc744-8430-45dd-a5d9-e54f408cdc56');
+var element = $('#679279b5-ee93-42db-8543-83a30ca0a896');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -16319,10 +16319,10 @@ if (IPython.notebook.kernel != null) {
 
 
 
-<div id="413a9432-b69f-40ec-a840-c9680cd6341f"></div>
+<div id="9072f2fc-3193-4a9c-bca7-6ea3a0ef07b5"></div>
 <div class="output_subarea output_javascript ">
 <script type="text/javascript">
-var element = $('#413a9432-b69f-40ec-a840-c9680cd6341f');
+var element = $('#9072f2fc-3193-4a9c-bca7-6ea3a0ef07b5');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
