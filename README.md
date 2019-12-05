@@ -13,7 +13,7 @@ Term: Spring 2019
 	+ Zongbo Cai
 	+ HuiChiang Tay
 	
-**Contribution statement**: Andy Huang prepared functions, implemented the basline method and the XGBoost model. Haiqing Xu proposed and implemented the Random Forest model. Zongbo Cai proposed and implemented the LightGBM Model. Wensong Qiao proposed and implemented SRCNN. (Due to time limit, the model is not fully tuned so we did not include it in the final report.) All memebers contributed to the presentation and brainstorming of the project.
+**Contribution statement**: Andy Huang prepared functions, implemented the basline method and the XGBoost model. Haiqing Xu proposed and implemented the Random Forest model. Zongbo Cai proposed and implemented the LightGBM Model. Wensong Qiao proposed and implemented SRCNN.  All memebers contributed to the presentation and brainstorming of the project.
 
 Following [suggestions](http://nicercode.github.io/blog/2013-04-05-projects/) by [RICH FITZJOHN](http://nicercode.github.io/about/#Team) (@richfitz). This folder is orgarnized as follows.
 
